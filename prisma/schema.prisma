@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(100)  
+  users     User[] 
+
+  @@map("tbl_roles")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(100)
+  email         String    @unique @db.VarChar(100)
+  password      String    @db.VarChar(100)
+  profileImage  String?   @db.VarChar(100)
+  role_id       Int       @default(0) @db.Int
+  otp           String?   @db.VarChar(6)
+  otpExpiresAt  DateTime? @db.DateTime
+  isActive      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt @db.Timestamp()
+  tasks         TaskAssignment[]
+  comments      Comment[]
+  taskProjects  TaskProject[]
+  notifications TaskNotification[]
+  userMembers   TaskProjectMember[]
+  role          Role      @relation(fields: [role_id], references: [id])
+
+  @@map("tbl_users")
+}
+
+model Task {
+  id                  Int         @id @default(autoincrement())
+  project_id          Int         @db.Int
+  section_id          Int         @db.Int
+  title               String      @db.VarChar(100)
+  description         String      @db.Text
+  due_date            DateTime?   @db.DateTime
+  priority            Priority  
+  status              Status      @default(Pending)
+  is_recurring        Boolean     @default(false)
+  recurrence_interval Recurrence?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt @db.Timestamp()
+  comments            Comment[]
+  subtasks            SubTask[]
+  taskNotifications   TaskNotification[]
+   project            TaskProject  @relation(fields: [project_id], references: [id])
+  section             TaskSection  @relation(fields: [section_id], references: [id])
+  files               TaskFile[]
+  repeats             TaskRepeat[]
+  assignments         TaskAssignment[]
+
+  @@map("tbl_tasks")
+ 
+}
+
+model TaskProject {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(100)
+  description String    @db.Text
+  owner_id    Int       @db.Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt @db.Timestamp()
+  sections    TaskSection[]
+  owner       User      @relation(fields: [owner_id], references: [id])
+  members     TaskProjectMember[]
+  tasks       Task[]
+
+  @@map("tbl_task_projects")
+}
+
+model TaskSection {
+  id         Int         @db.Int @id @default(autoincrement())
+  project_id Int         @db.Int
+  name       String      @db.VarChar(100)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt @db.Timestamp()
+  tasks      Task[]
+  project    TaskProject @relation(fields: [project_id], references: [id])
+
+  @@map("tbl_task_sections")
+}
+
+model TaskAssignment {
+  id        Int    @id @default(autoincrement())
+  task_id   Int    @db.Int
+  user_id   Int    @db.Int
+  assigned_at DateTime @default(now())
+  task      Task   @relation(fields: [task_id], references: [id])
+  user      User   @relation(fields: [user_id], references: [id])
+
+  @@map("tbl_task_assignments")
+}
+
+model TaskNotification {
+  id                Int       @id @default(autoincrement())
+  user_id           Int       @db.Int
+  task_id           Int       @db.Int
+  notification_type NotificationType   
+  message           String    @db.Text
+  is_read           Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  user              User      @relation(fields: [user_id], references: [id])
+  task              Task      @relation(fields: [task_id], references: [id])
+
+  @@map("tbl_notifications")
+}
+
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  task_id   Int       @db.Int
+  user_id   Int       @db.Int
+  comment   String    @db.Text
+  createdAt DateTime  @default(now())
+  task      Task      @relation(fields: [task_id], references: [id])
+  user      User      @relation(fields: [user_id], references: [id])
+
+  @@map("tbl_task_comments")
+}
+
+model SubTask {
+  id                  Int         @id @default(autoincrement())
+  task_id             Int         @db.Int
+  title               String      @db.VarChar(100)
+  description         String      @db.Text
+  due_date            DateTime?   @db.DateTime
+  priority            Priority
+  status              Status      @default(Pending)
+  is_recurring        Boolean     @default(false)
+  recurrence_interval Recurrence?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt @db.Timestamp()
+  task                Task        @relation(fields: [task_id], references: [id])
+
+  @@map("tbl_subtasks")
+}
+
+model TaskFile {
+  id        Int       @id @default(autoincrement())
+  task_id   Int       @db.Int
+  file_url  String    @db.VarChar(100)
+  createdAt DateTime  @default(now())
+  task      Task      @relation(fields: [task_id], references: [id])
+
+  @@map("tbl_files")
+}
+
+model TaskRepeat {
+  id         Int      @id @default(autoincrement())
+  task_id    Int      @db.Int
+  repeat_date  String @db.VarChar(100)
+  createdAt  DateTime @default(now())
+  task       Task     @relation(fields: [task_id], references: [id])
+
+  @@map("tbl_task_repeats")
+}
+
+model TaskProjectMember {
+  id         Int          @id @default(autoincrement())
+  project_id Int          @db.Int 
+  user_id    Int          @db.Int 
+  role       RolesMembers    
+  joined_at  DateTime     @default(now())
+  project    TaskProject  @relation(fields: [project_id], references: [id])
+  user       User         @relation(fields: [user_id], references: [id])
+
+  @@map("tbl_task_project_members")
+}
+
+
+enum Priority {
+  Low
+  Medium
+  High
+}
+
+enum Status {
+  Pending
+  InProgress
+  Completed
+}
+
+enum Recurrence {
+  Daily
+  Weekly
+  Monthly
+  Yearly
+}
+
+enum NotificationType {
+  InApp
+  Email
+}
+
+enum RolesMembers {
+   Owner
+  Member
+}
+ 
