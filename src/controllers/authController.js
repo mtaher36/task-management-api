@@ -1,5 +1,10 @@
-// src/controllers/authController.js
-import { register, verifyOtp, login } from '../services/authService.js';
+import {
+  register,
+  verifyOtp,
+  login,
+  requestPasswordReset,
+  resetPassword,
+} from '../services/authService.js';
 import logger from '../config/logger.js';
 import { registerSchema, loginSchema } from '../validations/authValidation.js';
 
@@ -47,6 +52,32 @@ const authController = {
     } catch (error) {
       logger.error(error);
       res.status(500).json({ error: error.message });
+    }
+  },
+
+  logout: (req, res) => {
+    res.status(200).json({ message: 'Logout successful' });
+  },
+
+  requestPasswordReset: async (req, res) => {
+    try {
+      const { email } = req.body;
+      const response = await requestPasswordReset(email);
+      res.status(200).json(response);
+    } catch (error) {
+      logger.error(error);
+      res.status(400).json({ error: error.message });
+    }
+  },
+
+  resetPassword: async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      const response = await resetPassword(token, newPassword);
+      res.status(200).json(response);
+    } catch (error) {
+      logger.error(error);
+      res.status(400).json({ error: error.message });
     }
   },
 };
