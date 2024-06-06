@@ -22,3 +22,10 @@ export const sendEmail = async (to, subject, text) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+export const sendOtpEmail = async (to, otp) => {
+  const subject = 'Your OTP Code';
+  const text = `Your OTP code is ${otp}. It will expire in 10 minutes.`;
+
+  await sendEmail(to, subject, text);
+};

@@ -8,9 +8,9 @@
 
 ```json
 {
-  "username": "user123",
-  "email": "user@example.com",
-  "password": "password123"
+  "username": "test",
+  "email": "test@example.com",
+  "password": "test123"
 }
 ```
 
@@ -18,14 +18,7 @@
 
 ```json
 {
-  "message": "User registered successfully",
-  "user": {
-    "id": 1,
-    "username": "user123",
-    "email": "user@example.com",
-    "profile_image": null,
-    "role_id": 0
-  }
+  "message": "User registered, please check your email for OTP"
 }
 ```
 
@@ -37,6 +30,35 @@
 }
 ```
 
+## Email Verify OTP
+
+**Endpoint**: `POST /api/auth/register`
+
+**Request Body**:
+
+```json
+{
+  "email": "test@test.com",
+  "otp": "616642"
+}
+```
+
+**Response Body Success:**:
+
+```json
+{
+  "message": "Email verified successfully"
+}
+```
+
+**Response Body Error:**:
+
+```json
+{
+  "error": "Invalid OTP"
+}
+```
+
 ## Login
 
 **Endpoint**: `POST /api/auth/login`
@@ -45,7 +67,7 @@
 
 ```json
 {
-  "email": "user@example.com",
+  "email": "test@test.com",
   "password": "password123"
 }
 ```
@@ -54,8 +76,7 @@
 
 ```json
 {
-  "message": "Login successful",
-  "token": "unique-token"
+  "token": "secret_token"
 }
 ```
 
@@ -91,13 +112,13 @@
 
 ## Password Recovery Request
 
-**Endpoint:** `POST /api/auth/recovery-request`
+**Endpoint:** `POST /api/auth/request-password-reset`
 
 **Request Body:**
 
 ```json
 {
-  "email": "user@example.com"
+  "email": "test@test.com"
 }
 ```
 
@@ -105,7 +126,7 @@
 
 ```json
 {
-  "message": "Password recovery email sent"
+  "message": "Password reset link sent to your email"
 }
 ```
 
@@ -113,7 +134,7 @@
 
 ```json
 {
-  "error": "Email not found"
+  "error": "User with this email does not exist"
 }
 ```
 
