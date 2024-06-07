@@ -12,10 +12,12 @@ const authMiddleware = async (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'Token missing' });
+  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-
     req.user = await prisma.user.findUnique({ where: { id: decoded.userId } });
 
     if (!req.user) {

@@ -25,7 +25,9 @@
   "taskSection": {
     "id": 1,
     "project_id": 1,
-    "name": "New Section"
+    "name": "Section",
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
   }
 }
 ```
@@ -34,13 +36,13 @@
 
 ```json
 {
-  "error": "Invalid input data"
+  "error": "field Name is required"
 }
 ```
 
-## Get Task Sections
+## Get Task Sections By Projects Id
 
-**Endpoint:** `GET /api/task-sections`
+**Endpoint:** `GET /api/task-sections/:project_id`
 
 **Request Headers:**
 
@@ -53,7 +55,16 @@
   {
     "id": 1,
     "project_id": 1,
-    "name": "New Section"
+    "name": "Section 1",
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
+  },
+  {
+    "id": 2,
+    "project_id": 1,
+    "name": "Section 2",
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
   }
 ]
 ```
@@ -62,7 +73,35 @@
 
 ```json
 {
-  "error": "Unauthorized"
+  "error": "Forbidden: You do not own this project"
+}
+```
+
+## Get Task Sections By Section Id
+
+**Endpoint:** `GET /api/task-sections/:id`
+
+**Request Headers:**
+
+`Authorization: Bearer unique-token`
+
+**Response Body Success:**
+
+```json
+{
+  "id": 1,
+  "project_id": 1,
+  "name": "Section 1",
+  "createdAt": "Current Time",
+  "updatedAt": "Current Time"
+}
+```
+
+**Response Body Error:**
+
+```json
+{
+  "error": "Forbidden: You do not own this project"
 }
 ```
 
@@ -90,7 +129,9 @@
   "taskSection": {
     "id": 1,
     "project_id": 1,
-    "name": "Updated Section"
+    "name": "Updated Section",
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
   }
 }
 ```
@@ -99,7 +140,7 @@
 
 ```json
 {
-  "error": "Task section not found"
+  "error": "Forbidden: You do not own this task section"
 }
 ```
 
@@ -123,6 +164,6 @@
 
 ```json
 {
-  "error": "Task section not found"
+  "error": "Forbidden: You do not own this task section"
 }
 ```

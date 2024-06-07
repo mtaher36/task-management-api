@@ -8,6 +8,11 @@ export const getAllTaskProjects = async () => {
   return prisma.taskProject.findMany();
 };
 
+export const getTaskProjectsByOwnerId = async (owner_id) => {
+  return prisma.taskProject.findMany({
+    where: { owner_id },
+  });
+};
 export const getTaskProjectById = async (id) => {
   return prisma.taskProject.findUnique({ where: { id } });
 };

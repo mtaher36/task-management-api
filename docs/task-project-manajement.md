@@ -24,9 +24,11 @@
   "message": "Task project created successfully",
   "taskProject": {
     "id": 1,
-    "title": "New Project",
-    "description": "Project description",
-    "owner_id": 1
+    "title": "New Project ",
+    "description": "Project Description",
+    "owner_id": 1,
+    "createdAt": "Current Timestamp",
+    "updatedAt": "Current Timestamp"
   }
 }
 ```
@@ -35,7 +37,7 @@
 
 ```json
 {
-  "error": "Invalid input data"
+  "error": "Title is required"
 }
 ```
 
@@ -53,9 +55,27 @@
 [
   {
     "id": 1,
-    "title": "New Project",
-    "description": "Project description",
-    "owner_id": 1
+    "title": "Updated Title",
+    "description": "Updated Project",
+    "owner_id": 1,
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
+  },
+  {
+    "id": 2,
+    "title": "ProjectB",
+    "description": "ProjectB",
+    "owner_id": 1,
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
+  },
+  {
+    "id": 3,
+    "title": "ProjectB",
+    "description": "ProjectB",
+    "owner_id": 1,
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
   }
 ]
 ```
@@ -64,7 +84,7 @@
 
 ```json
 {
-  "error": "Unauthorized"
+  "error": "Project ID not found"
 }
 ```
 
@@ -92,9 +112,11 @@
   "message": "Task project updated successfully",
   "taskProject": {
     "id": 1,
-    "title": "Updated Project",
-    "description": "Updated description",
-    "owner_id": 1
+    "title": "Updated Title",
+    "description": "Updated Project",
+    "owner_id": 1,
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
   }
 }
 ```
