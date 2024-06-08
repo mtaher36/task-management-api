@@ -36,7 +36,9 @@
     "priority": "High",
     "status": "Pending",
     "is_recurring": true,
-    "recurrence_interval": "Daily"
+    "recurrence_interval": "Daily",
+    "createdAt": "Current Time",
+    "updatedAt": "Curren Time"
   }
 }
 ```
@@ -45,7 +47,7 @@
 
 ```json
 {
-  "error": "Invalid input data"
+  "error": "\"fields\" is required"
 }
 ```
 
@@ -69,7 +71,9 @@
     "priority": "High",
     "status": "Pending",
     "is_recurring": true,
-    "recurrence_interval": "Daily"
+    "recurrence_interval": "Daily",
+    "createdAt": "Current Time",
+    "updatedAt": "Curren Time"
   }
 ]
 ```
@@ -117,7 +121,9 @@
     "priority": "Medium",
     "status": "In Progress",
     "is_recurring": false,
-    "recurrence_interval": null
+    "recurrence_interval": null,
+    "createdAt": "Current Time",
+    "updatedAt": "Curren Time"
   }
 }
 ```
@@ -126,7 +132,7 @@
 
 ```json
 {
-  "error": "Task not found"
+  "error": "Unauthorized"
 }
 ```
 
@@ -150,6 +156,6 @@
 
 ```json
 {
-  "error": "Task not found"
+  "error": "Unauthorized"
 }
 ```

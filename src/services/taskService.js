@@ -16,7 +16,7 @@ export const createTask = async (
   });
 
   if (!project || project.owner_id !== userId) {
-    throw new Error('Unauthorized');
+    throw new Error('Forbidden: You do not own this project');
   }
 
   return await prisma.task.create({
@@ -50,7 +50,7 @@ export const getTaskById = async (id, userId) => {
   });
 
   if (task.project.owner_id !== userId) {
-    throw new Error('Unauthorized');
+    throw new Error('Forbidden: You do not own this project');
   }
 
   return task;
