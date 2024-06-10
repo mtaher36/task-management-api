@@ -47,7 +47,7 @@ model Task {
   description         String      @db.Text
   due_date            DateTime?   @db.DateTime
   priority            Priority  
-  status              Status      @default(Pending)
+  status              Status      @default(InProgress)
   is_recurring        Boolean     @default(false)
   recurrence_interval Recurrence?
   createdAt           DateTime    @default(now())
@@ -58,7 +58,6 @@ model Task {
    project            TaskProject  @relation(fields: [project_id], references: [id])
   section             TaskSection  @relation(fields: [section_id], references: [id])
   files               TaskFile[]
-  repeats             TaskRepeat[]
   assignments         TaskAssignment[]
 
   @@map("tbl_tasks")
@@ -137,7 +136,7 @@ model SubTask {
   description         String      @db.Text
   due_date            DateTime?   @db.DateTime
   priority            Priority
-  status              Status      @default(Pending)
+  status              Status      @default(InProgress)
   is_recurring        Boolean     @default(false)
   recurrence_interval Recurrence?
   createdAt           DateTime    @default(now())
@@ -157,15 +156,7 @@ model TaskFile {
   @@map("tbl_files")
 }
 
-model TaskRepeat {
-  id         Int      @id @default(autoincrement())
-  task_id    Int      @db.Int
-  repeat_date  String @db.VarChar(100)
-  createdAt  DateTime @default(now())
-  task       Task     @relation(fields: [task_id], references: [id])
 
-  @@map("tbl_task_repeats")
-}
 
 model TaskProjectMember {
   id         Int          @id @default(autoincrement())
@@ -187,7 +178,6 @@ enum Priority {
 }
 
 enum Status {
-  Pending
   InProgress
   Completed
 }

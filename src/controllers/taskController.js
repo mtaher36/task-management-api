@@ -4,6 +4,7 @@ import {
   getTaskById,
   updateTask,
   deleteTask,
+  completeTask,
 } from '../services/taskService.js';
 
 export const createTaskController = async (req, res) => {
@@ -84,6 +85,19 @@ export const deleteTaskController = async (req, res) => {
     const id = parseInt(req.params.id);
     await deleteTask(id, req.user.id);
     res.status(200).json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const completeTaskController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const completedTask = await completeTask(req.user.id, parseInt(id));
+    res.status(200).json({
+      message: 'Task completed successfully',
+      task: completedTask,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -4,6 +4,7 @@ import {
   getTasksController,
   updateTaskController,
   deleteTaskController,
+  completeTaskController,
 } from '../controllers/taskController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import { validateBody } from '../middlewares/validationMiddleware.js';
@@ -35,6 +36,12 @@ router.delete(
   authMiddleware,
   validateTaskOwnership,
   deleteTaskController
+);
+router.post(
+  '/:id/complete',
+  authMiddleware,
+  validateTaskOwnership,
+  completeTaskController
 );
 
 export default router;
