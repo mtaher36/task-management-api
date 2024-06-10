@@ -63,8 +63,8 @@ export const updateSubtask = async (
     where: { id: parseInt(id) },
   });
 
-  if (!subtask || subtask.task_id !== Number(task_id)) {
-    throw new Error('Forbidden: You do not own this subtask');
+  if (!subtask) {
+    throw new Error('Subtask not found');
   }
 
   return await prisma.subTask.update({

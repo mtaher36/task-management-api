@@ -190,4 +190,46 @@ describe('Task API', () => {
       expect(res.body).toHaveProperty('error');
     });
   });
+
+  describe('POST /api/tasks/:id/complete', () => {
+    let task;
+
+    beforeAll(async () => {
+      task = await prisma.task.create({
+        data: {
+          project_id: project.id,
+          section_id: section.id,
+          title: 'Task to Complete',
+          description: 'Task description',
+          due_date: new Date('2023-12-31'),
+          priority: 'High',
+          status: 'Pending',
+          is_recurring: true,
+          recurrence_interval: 'Daily',
+        },
+      });
+    });
+
+    it('should mark a task as completed', async () => {
+      const res = await request(app)
+        .post(`/api/tasks/${task.id}/complete`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty(
+        'message',
+        'Task marked as completed successfully'
+      );
+      expect(res.body.task.status).toBe('Completed');
+    });
+
+    it('should return an error for non-existent task', async () => {
+      const res = await request(app)
+        .post('/api/tasks/999/complete')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toHaveProperty('error');
+    });
+  });
 });

@@ -96,12 +96,10 @@ export const completeSubtaskController = async (req, res) => {
     const { taskId, id } = req.params;
     const userId = req.user.id;
     const updatedSubtask = await completeSubtask(userId, parseInt(id));
-    res
-      .status(200)
-      .json({
-        message: 'Subtask completed successfully',
-        subtask: updatedSubtask,
-      });
+    res.status(200).json({
+      message: 'Subtask completed successfully',
+      subtask: updatedSubtask,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

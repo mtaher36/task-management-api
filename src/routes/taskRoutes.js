@@ -25,20 +25,20 @@ router.post(
 );
 router.get('/', authMiddleware, getTasksController);
 router.put(
-  '/:id',
+  '/:taskId',
   authMiddleware,
   validateBody(updateTaskSchema),
   validateTaskOwnership,
   updateTaskController
 );
 router.delete(
-  '/:id',
+  '/:taskId',
   authMiddleware,
   validateTaskOwnership,
   deleteTaskController
 );
 router.post(
-  '/:id/complete',
+  '/:taskId/complete',
   authMiddleware,
   validateTaskOwnership,
   completeTaskController

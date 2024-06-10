@@ -159,3 +159,41 @@
   "error": "Unauthorized"
 }
 ```
+
+## Completed Task
+
+**Endpoint** : `POST /api/tasks/:id/complete`
+
+**Request Headers:**
+
+`Authorization: Bearer unique-token`
+
+**Response Body Success:**
+
+```json
+{
+  "message": "Task completed successfully",
+  "task": {
+    "id": 1,
+    "project_id": 1,
+    "section_id": 1,
+    "title": "New Task",
+    "description": "Task description",
+    "due_date": "2023-12-31T00:00:00.000Z",
+    "priority": "High",
+    "status": "Completed",
+    "is_recurring": true,
+    "recurrence_interval": "Monthly",
+    "createdAt": "2024-06-10T03:36:09.426Z",
+    "updatedAt": "2024-06-10T15:34:27.000Z"
+  }
+}
+```
+
+**Response Body Error:**
+
+```json
+{
+  "error": "Unauthorized"
+}
+```

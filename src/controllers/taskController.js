@@ -50,7 +50,7 @@ export const getTasksController = async (req, res) => {
 
 export const updateTaskController = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const taskId = parseInt(req.params.taskId);
     const {
       title,
       description,
@@ -61,7 +61,7 @@ export const updateTaskController = async (req, res) => {
       recurrence_interval,
     } = req.body;
     const task = await updateTask(
-      id,
+      taskId,
       req.user.id,
       title,
       description,
@@ -82,8 +82,8 @@ export const updateTaskController = async (req, res) => {
 
 export const deleteTaskController = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    await deleteTask(id, req.user.id);
+    const taskId = parseInt(req.params.taskId);
+    await deleteTask(taskId, req.user.id);
     res.status(200).json({ message: 'Task deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -92,8 +92,8 @@ export const deleteTaskController = async (req, res) => {
 
 export const completeTaskController = async (req, res) => {
   try {
-    const { id } = req.params;
-    const completedTask = await completeTask(req.user.id, parseInt(id));
+    const { taskId } = req.params;
+    const completedTask = await completeTask(req.user.id, parseInt(taskId));
     res.status(200).json({
       message: 'Task completed successfully',
       task: completedTask,
