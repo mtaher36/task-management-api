@@ -1,12 +1,15 @@
 import prisma from '../config/database.js';
 
 export const validateTaskOwnership = async (req, res, next) => {
-  const taskId = parseInt(req.params.id);
-  const userId = req.user.id;
-
   try {
+    const { taskId } = req.params;
+    const userId = req.user.id;
+
+    if (!taskId) {
+      return res.status(400).json({ error: 'Task ID is required' });
+    }
     const task = await prisma.task.findUnique({
-      where: { id: taskId },
+      where: { id: parseInt(taskId) },
       include: { project: true },
     });
 
