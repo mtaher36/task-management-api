@@ -29,7 +29,6 @@ describe('Auth API', () => {
       password: 'password123',
     });
 
-    
     const user = await prisma.user.findUnique({
       where: { email: 'testuser2@example.com' },
     });
@@ -63,9 +62,7 @@ describe('Auth API', () => {
       .send({ email: 'testuser@example.com' });
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body.message).toBe(
-      'Password reset link sent to your email'
-    );
+    expect(res.body.message).toBe('Password reset link sent to your email');
     expect(res.body).toHaveProperty('token');
     token = res.body.token;
   });
