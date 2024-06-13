@@ -22,9 +22,9 @@ router.post(
   validateBody(createTaskSectionSchema),
   createTaskSectionController
 );
+router.get('/section/:id', authMiddleware, getTaskSectionByIdController);
+router.get('/project/:project_id', authMiddleware, getTaskSectionsController);
 
-router.get('/:project_id', authMiddleware, getTaskSectionsController);
-router.get('/:id', authMiddleware, getTaskSectionByIdController);
 router.put(
   '/:id',
   authMiddleware,

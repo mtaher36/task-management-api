@@ -42,7 +42,7 @@
 
 ## Get Task Sections By Projects Id
 
-**Endpoint:** `GET /api/task-sections/:project_id`
+**Endpoint:** `GET /api/task-sections/project/:project_id`
 
 **Request Headers:**
 
@@ -79,7 +79,7 @@
 
 ## Get Task Sections By Section Id
 
-**Endpoint:** `GET /api/task-sections/:id`
+**Endpoint:** `GET /api/task-sections/section/:id`
 
 **Request Headers:**
 

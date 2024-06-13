@@ -38,6 +38,8 @@ export const getTaskSectionByIdController = async (req, res) => {
     const { id } = req.params;
     const intId = parseInt(id);
 
+    console.log('Receiuved ID:', intId);
+
     if (isNaN(intId)) {
       return res.status(400).json({ error: 'Invalid section ID' });
     }
