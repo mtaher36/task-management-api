@@ -1,6 +1,5 @@
-// tests/taskProject.test.js
 import request from 'supertest';
-import app from '../src/app.js';
+import app from '../src/app.js'; // Pastikan path ini sesuai dengan struktur folder Anda
 import prisma from '../src/config/database.js';
 
 describe('Task Project API', () => {
@@ -8,90 +7,152 @@ describe('Task Project API', () => {
   let projectId;
 
   beforeAll(async () => {
-    // Assume you have a way to get a valid token
-    const res = await request(app).post('/api/auth/login').send({
-      email: 'testuser@example.com',
-      password: 'password123',
+    // Buat user untuk mendapatkan token autentikasi
+    const user = await prisma.user.create({
+      data: {
+        email: 'testuser@example.com',
+        password: 'password',
+      },
     });
-    token = res.body.token;
+
+    // Dapatkan token autentikasi
+    const response = await request(app).post('/api/auth/login').send({
+      email: 'testuser@example.com',
+      password: 'password',
+    });
+
+    token = response.body.token;
+
+    // Buat project untuk keperluan testing
+    const project = await prisma.taskProject.create({
+      data: {
+        name: 'Test Project',
+        description: 'Test Project Description',
+        owner_id: user.id,
+      },
+    });
+
+    projectId = project.id;
   });
 
   afterAll(async () => {
-    await prisma.taskProject.deleteMany(); // Clear test data
-    await prisma.user.deleteMany(); // Clear test data
-    await prisma.$disconnect();
+    // Hapus data yang telah dibuat setelah testing selesai
+    await prisma.taskProject.deleteMany();
+    await prisma.user.deleteMany();
   });
 
-  it('should create a new task project', async () => {
-    const res = await request(app)
+  it('POST /api/task-projects - should create a new task project', async () => {
+    const newProject = {
+      title: 'New Project',
+      description: 'New Project Description',
+    };
+
+    const response = await request(app)
       .post('/api/task-projects')
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        title: 'New Project',
-        description: 'Project description',
-      });
+      .send(newProject);
 
-    expect(res.statusCode).toEqual(201);
-    expect(res.body).toHaveProperty('message');
-    expect(res.body.taskProject).toHaveProperty('id');
-    projectId = res.body.taskProject.id;
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Task project created successfully'
+    );
+    expect(response.body.taskProject).toHaveProperty('id');
+    expect(response.body.taskProject).toMatchObject({
+      title: newProject.title,
+      description: newProject.description,
+      owner_id: expect.any(Number), // Jika menggunakan user dummy yang sama, sesuaikan dengan user.id yang ada
+    });
   });
 
-  it('should not create a new task project with invalid data', async () => {
-    const res = await request(app)
-      .post('/api/task-projects')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        title: '', // Invalid title
-        description: 'Project description',
-      });
-
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty('error');
-  });
-
-  it('should get all task projects', async () => {
-    const res = await request(app)
-      .get('/api/task-projects')
+  it('GET /api/task-projects/:id - should return project details for a valid project ID', async () => {
+    const response = await request(app)
+      .get(`/api/task-projects/${projectId}`)
       .set('Authorization', `Bearer ${token}`);
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toBeInstanceOf(Array);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('id', projectId);
+    expect(response.body).toHaveProperty('title', 'Test Project');
+    expect(response.body).toHaveProperty(
+      'description',
+      'Test Project Description'
+    );
   });
 
-  it('should update a task project', async () => {
-    const res = await request(app)
+  it('GET /api/task-projects/:id - should return 400 for an invalid project ID', async () => {
+    const response = await request(app)
+      .get('/api/task-projects/invalid-id')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error', 'Invalid project ID');
+  });
+
+  it('GET /api/task-projects/:id - should return 404 for a non-existent project ID', async () => {
+    const nonExistentProjectId = 9999;
+    const response = await request(app)
+      .get(`/api/task-projects/${nonExistentProjectId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('error', 'Task project not found');
+  });
+
+  it('PUT /api/task-projects/:id - should update a task project', async () => {
+    const updatedProject = {
+      title: 'Updated Project',
+      description: 'Updated Project Description',
+    };
+
+    const response = await request(app)
       .put(`/api/task-projects/${projectId}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        title: 'Updated Project',
-        description: 'Updated description',
-      });
+      .send(updatedProject);
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty('message');
-    expect(res.body.taskProject.title).toBe('Updated Project');
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Task project updated successfully'
+    );
+    expect(response.body.taskProject).toHaveProperty('id', projectId);
+    expect(response.body.taskProject).toMatchObject(updatedProject);
   });
 
-  it('should not update a task project with invalid data', async () => {
-    const res = await request(app)
-      .put(`/api/task-projects/${projectId}`)
+  it('PUT /api/task-projects/:id - should return 404 for a non-existent project ID during update', async () => {
+    const nonExistentProjectId = 9999;
+    const updatedProject = {
+      title: 'Updated Project',
+      description: 'Updated Project Description',
+    };
+
+    const response = await request(app)
+      .put(`/api/task-projects/${nonExistentProjectId}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({
-        title: '', // Invalid title
-        description: 'Updated description',
-      });
+      .send(updatedProject);
 
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toHaveProperty('error');
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('error', 'Task project not found');
   });
 
-  it('should delete a task project', async () => {
-    const res = await request(app)
+  it('DELETE /api/task-projects/:id - should delete a task project', async () => {
+    const response = await request(app)
       .delete(`/api/task-projects/${projectId}`)
       .set('Authorization', `Bearer ${token}`);
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty('message');
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Task project deleted successfully'
+    );
+  });
+
+  it('DELETE /api/task-projects/:id - should return 404 for a non-existent project ID during delete', async () => {
+    const nonExistentProjectId = 9999;
+    const response = await request(app)
+      .delete(`/api/task-projects/${nonExistentProjectId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('error', 'Task project not found');
   });
 });

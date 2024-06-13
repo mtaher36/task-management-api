@@ -41,7 +41,37 @@
 }
 ```
 
-## Get Task Projects
+## Get Task Projects By Project ID
+
+**Endpoint:** `GET /api/task-projects/:id`
+
+**Request Headers:**
+
+`Authorization: Bearer unique-token`
+
+**Response Body Success:**
+
+```json
+
+  {
+    "id": 1,
+    "title": "Title",
+    "description": "Project",
+    "owner_id": 1,
+    "createdAt": "Current Time",
+    "updatedAt": "Current Time"
+  },
+```
+
+**Response Body Error:**
+
+```json
+{
+  "error": "Project ID not found"
+}
+```
+
+## Get Task Projects By User ID
 
 **Endpoint:** `GET /api/task-projects`
 

@@ -85,7 +85,7 @@ describe('Task Section API', () => {
 
   it('should get task section by ID if owner', async () => {
     const res = await request(app)
-      .get(`/api/task-sections/${taskSection.id}`)
+      .get(`/api/task-sections/section/${taskSection.id}`)
       .set('Authorization', `Bearer ${userToken}`);
 
     expect(res.statusCode).toEqual(200);
@@ -95,7 +95,7 @@ describe('Task Section API', () => {
 
   it('should not get task section by ID if not owner', async () => {
     const res = await request(app)
-      .get(`/api/task-sections/${taskSection.id}`)
+      .get(`/api/task-sections/section/${taskSection.id}`)
       .set('Authorization', `Bearer ${userToken2}`);
 
     expect(res.statusCode).toEqual(403);
