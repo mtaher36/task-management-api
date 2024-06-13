@@ -1,6 +1,10 @@
 // src/services/authService.js
 import prisma from '../config/database.js';
-import { hashPassword, comparePassword } from '../utils/bcrypt.js';
+import {
+  hashPassword,
+  comparePassword,
+  generateRandomPassword,
+} from '../utils/bcrypt.js';
 import { generateToken } from '../utils/jwt.js';
 import { sendEmail } from '../utils/email.js';
 import crypto from 'crypto';
@@ -10,7 +14,8 @@ const register = async (username, email, password) => {
   if (userExists) throw new Error('Email already registered');
 
   const hashedPassword = await hashPassword(password);
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const token = crypto.randomBytes(20).toString('hex');
+  const tokenExpires = new Date(Date.now() + 3600000);
 
   const userRole = await prisma.role.findUnique({ where: { name: 'user' } });
   if (!userRole) throw new Error('Role not found');
@@ -20,26 +25,42 @@ const register = async (username, email, password) => {
       username,
       email,
       password: hashedPassword,
-      otp,
+      verificationToken: token,
+      verificationTokenExpires: tokenExpires,
       isActive: false,
       role_id: userRole.id,
     },
   });
 
-  await sendEmail(email, 'Verify your email', `Your OTP is ${otp}`);
+  const verificationLink = `http://localhost:3000/api/auth/verify-email?token=${token}`;
+
+  await sendEmail(
+    email,
+    'Verify your email',
+    `Click the following link to verify your email: ${verificationLink}`
+  );
 
   return user;
 };
 
-const verifyOtp = async (email, otp) => {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error('Invalid email or OTP');
-
-  if (user.otp !== otp) throw new Error('Invalid OTP');
+const verifyEmail = async (token) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      verificationToken: token,
+      verificationTokenExpires: {
+        gt: new Date(),
+      },
+    },
+  });
+  if (!user) throw new Error('Invalid or expired token');
 
   await prisma.user.update({
-    where: { email },
-    data: { isActive: true, otp: null },
+    where: { id: user.id },
+    data: {
+      isActive: true,
+      verificationToken: null,
+      verificationTokenExpires: null,
+    },
   });
 
   return user;
@@ -63,47 +84,55 @@ const requestPasswordReset = async (email) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error('User with this email does not exist');
 
-  const token = crypto.randomBytes(32).toString('hex');
-  const tokenExpires = new Date(Date.now() + 3600000); // Token expires in 1 hour
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { resetToken: token, resetTokenExpires: tokenExpires },
+    data: {
+      otp,
+      otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 menit
+    },
   });
 
-  const resetLink = `http://localhost:3000/api/auth/reset-password?token=${token}`;
-  await sendEmail(
-    user.email,
-    'Password Reset',
-    `Click this link to reset your password: ${resetLink}`
-  );
-
-  return { message: 'Password reset link sent to your email' };
+  await sendEmail(email, 'Password Reset OTP', `Your OTP is ${otp}`);
 };
 
-const resetPassword = async (token, newPassword) => {
+const verifyOtpAndSendRandomPassword = async (email, otp) => {
   const user = await prisma.user.findFirst({
     where: {
-      resetToken: token,
-      resetTokenExpires: {
+      email,
+      otp,
+      otpExpiresAt: {
         gt: new Date(),
       },
     },
   });
 
-  if (!user) throw new Error('Invalid or expired token');
+  if (!user) throw new Error('Invalid or expired OTP');
 
-  const hashedPassword = await hashPassword(newPassword);
+  const randomPassword = generateRandomPassword();
+  const hashedPassword = await hashPassword(randomPassword);
+
   await prisma.user.update({
     where: { id: user.id },
     data: {
       password: hashedPassword,
-      resetToken: null,
-      resetTokenExpires: null,
+      otp: null,
+      otpExpiresAt: null,
     },
   });
 
-  return { message: 'Password reset successful' };
+  await sendEmail(
+    email,
+    'Your New Password',
+    `Your new password is ${randomPassword}`
+  );
 };
 
-export { register, verifyOtp, login, requestPasswordReset, resetPassword };
+export {
+  register,
+  verifyEmail,
+  login,
+  requestPasswordReset,
+  verifyOtpAndSendRandomPassword,
+};

@@ -5,9 +5,6 @@ export const validateTaskOwnership = async (req, res, next) => {
     const { taskId } = req.params;
     const userId = req.user.id;
 
-    console.log('userId', userId);
-    console.log('taskId', taskId);
-
     if (!taskId) {
       return res.status(400).json({ error: 'Task ID is required' });
     }
@@ -19,8 +16,6 @@ export const validateTaskOwnership = async (req, res, next) => {
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
     }
-
-    console.log(task.project.owner_id);
 
     if (task.project.owner_id !== userId) {
       return res.status(403).json({ error: 'Unauthorized' });

@@ -5,6 +5,9 @@ const registerSchema = Joi.object({
   username: Joi.string().min(3).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
+  confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
+    'any.only': 'Password and confirm password must match',
+  }),
 });
 
 const loginSchema = Joi.object({
@@ -16,14 +19,9 @@ const requestPasswordResetSchema = Joi.object({
   email: Joi.string().email().required(),
 });
 
-const resetPasswordSchema = Joi.object({
-  token: Joi.string().required(),
-  newPassword: Joi.string().min(6).required(),
+const otpSchema = Joi.object({
+  email: Joi.string().email().required(),
+  otp: Joi.string().length(6).required(),
 });
 
-export {
-  registerSchema,
-  loginSchema,
-  requestPasswordResetSchema,
-  resetPasswordSchema,
-};
+export { registerSchema, loginSchema, requestPasswordResetSchema, otpSchema };

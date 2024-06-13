@@ -10,7 +10,8 @@
 {
   "username": "test",
   "email": "test@example.com",
-  "password": "test123"
+  "password": "test123",
+  "confirmPassword": "123"
 }
 ```
 
@@ -32,16 +33,7 @@
 
 ## Email Verify OTP
 
-**Endpoint**: `POST /api/auth/register`
-
-**Request Body**:
-
-```json
-{
-  "email": "test@test.com",
-  "otp": "616642"
-}
-```
+**Endpoint**: `GET /api/auth/verify-email/:token`
 
 **Response Body Success:**:
 
@@ -55,7 +47,7 @@
 
 ```json
 {
-  "error": "Invalid OTP"
+  "error": "Invalid or expired token"
 }
 ```
 
@@ -140,14 +132,14 @@
 
 ## Reset Password
 
-**Endpoint:** `POST /api/auth/reset-password`
+**Endpoint:** `POST /api/auth/verify-otp-reset-password`
 
 **Request Body:**
 
 ```json
 {
-  "token": "recovery-token",
-  "new_password": "newpassword123"
+  "email": "user@test.com",
+  "otp": "recovery-otp"
 }
 ```
 
@@ -155,7 +147,7 @@
 
 ```json
 {
-  "message": "Password reset successfully"
+  "message": "New password sent to your email"
 }
 ```
 

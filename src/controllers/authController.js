@@ -1,36 +1,37 @@
 import {
   register,
-  verifyOtp,
+  verifyEmail,
   login,
   requestPasswordReset,
-  resetPassword,
+  verifyOtpAndSendRandomPassword,
 } from '../services/authService.js';
 import logger from '../config/logger.js';
-import { registerSchema, loginSchema } from '../validations/authValidation.js';
 
 const authController = {
   register: async (req, res) => {
     try {
-      const { error } = registerSchema.validate(req.body);
-      if (error)
-        return res.status(400).json({ error: error.details[0].message });
-
       const { username, email, password } = req.body;
+
       await register(username, email, password);
 
-      res
-        .status(201)
-        .json({ message: 'User registered, please check your email for OTP' });
+      res.status(201).json({
+        message:
+          'User registered, please check your email for verification link',
+      });
     } catch (error) {
       logger.error(error);
       res.status(500).json({ error: error.message });
     }
   },
 
-  verifyOtp: async (req, res) => {
+  verifyEmail: async (req, res) => {
     try {
-      const { email, otp } = req.body;
-      await verifyOtp(email, otp);
+      const { token } = req.query;
+      if (!token) {
+        return res.status(400).json({ error: 'Invalid or missing token' });
+      }
+
+      await verifyEmail(token);
 
       res.status(200).json({ message: 'Email verified successfully' });
     } catch (error) {
@@ -41,10 +42,6 @@ const authController = {
 
   login: async (req, res) => {
     try {
-      const { error } = loginSchema.validate(req.body);
-      if (error)
-        return res.status(400).json({ error: error.details[0].message });
-
       const { email, password } = req.body;
       const token = await login(email, password);
 
@@ -63,22 +60,26 @@ const authController = {
   requestPasswordReset: async (req, res) => {
     try {
       const { email } = req.body;
-      const response = await requestPasswordReset(email);
-      res.status(200).json(response);
+      await requestPasswordReset(email);
+
+      res
+        .status(200)
+        .json({ message: 'Password reset OTP sent to your email' });
     } catch (error) {
       logger.error(error);
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
   },
 
-  resetPassword: async (req, res) => {
+  verifyOtpAndSendRandomPassword: async (req, res) => {
     try {
-      const { token, newPassword } = req.body;
-      const response = await resetPassword(token, newPassword);
-      res.status(200).json(response);
+      const { email, otp } = req.body;
+      await verifyOtpAndSendRandomPassword(email, otp);
+
+      res.status(200).json({ message: 'New password sent to your email' });
     } catch (error) {
       logger.error(error);
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
   },
 };

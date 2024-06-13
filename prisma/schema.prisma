@@ -16,25 +16,27 @@ model Role {
 }
 
 model User {
-  id                Int       @id @default(autoincrement())
-  username          String    @unique @db.VarChar(100)
-  email             String    @unique @db.VarChar(100)
-  password          String    @db.VarChar(100)
-  profile_image      String?   @db.VarChar(100)
-  role_id           Int       @default(0) @db.Int
-  otp               String?   @db.VarChar(6)
-  otpExpiresAt      DateTime? @db.DateTime
-  isActive          Boolean   @default(false)
-  resetToken        String?   @db.VarChar(100)
-  resetTokenExpires DateTime? @db.DateTime
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt @db.Timestamp()
-  tasks             TaskAssignment[]
-  comments          Comment[]
-  taskProjects      TaskProject[]
-  notifications     TaskNotification[]
-  userMembers       TaskProjectMember[]
-  role              Role      @relation(fields: [role_id], references: [id])
+  id                        Int       @id @default(autoincrement())
+  username                  String    @unique @db.VarChar(100)
+  email                     String    @unique @db.VarChar(100)
+  password                  String    @db.VarChar(100)
+  profile_image             String?   @db.VarChar(100)
+  role_id                   Int       @default(0) @db.Int
+  verificationToken         String?   @db.VarChar(100)
+  verificationTokenExpires  DateTime? @db.DateTime
+  otp                       String?   @db.VarChar(6)
+  otpExpiresAt              DateTime? @db.DateTime
+  isActive                  Boolean   @default(false)
+  resetToken                String?   @db.VarChar(100)
+  resetTokenExpires         DateTime? @db.DateTime
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt @db.Timestamp()
+  tasks                     TaskAssignment[]
+  comments                  Comment[]
+  taskProjects              TaskProject[]
+  notifications             TaskNotification[]
+  userMembers               TaskProjectMember[]
+  role                      Role      @relation(fields: [role_id], references: [id])
 
   @@map("tbl_users")
 }
@@ -50,6 +52,7 @@ model Task {
   status              Status      @default(InProgress)
   is_recurring        Boolean     @default(false)
   recurrence_interval Recurrence?
+  notified            Boolean     @default(false)
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt @db.Timestamp()
   comments            Comment[]
@@ -105,10 +108,8 @@ model TaskAssignment {
 model TaskNotification {
   id                Int       @id @default(autoincrement())
   user_id           Int       @db.Int
-  task_id           Int       @db.Int
-  notification_type NotificationType   
+  task_id           Int       @db.Int   
   message           String    @db.Text
-  is_read           Boolean   @default(false)
   createdAt         DateTime  @default(now())
   user              User      @relation(fields: [user_id], references: [id])
   task              Task      @relation(fields: [task_id], references: [id])
@@ -189,10 +190,6 @@ enum Recurrence {
   Yearly
 }
 
-enum NotificationType {
-  InApp
-  Email
-}
 
 enum RolesMembers {
    Owner
