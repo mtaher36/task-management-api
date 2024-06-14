@@ -1,87 +1,199 @@
-// tests/auth.test.js
 import request from 'supertest';
-import app from '../src/app.js';
+import app from '../src/app.js'; // Pastikan path ini sesuai dengan struktur folder Anda
 import prisma from '../src/config/database.js';
 
-describe('Auth API', () => {
+describe('Authentication API', () => {
   let token;
 
+  beforeAll(async () => {
+    // Hapus semua data pengguna sebelum memulai pengujian
+    await prisma.user.deleteMany();
+  });
+
   afterAll(async () => {
-    await prisma.user.deleteMany(); // Menghapus data tes
-    await prisma.$disconnect();
+    // Hapus semua data pengguna setelah pengujian selesai
+    await prisma.user.deleteMany();
   });
 
-  it('should be can register users', async () => {
-    const res = await request(app).post('/api/auth/register').send({
-      username: 'testuser',
-      email: 'testuser@example.com',
-      password: 'password123',
+  describe('POST /api/auth/register', () => {
+    it('should register a new user', async () => {
+      const response = await request(app).post('/api/auth/register').send({
+        username: 'test',
+        email: 'test@example.com',
+        password: 'test123',
+        confirmPassword: 'test123',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty(
+        'message',
+        'User registered, please check your email for OTP'
+      );
     });
 
-    expect(res.statusCode).toEqual(201);
-    expect(res.body).toHaveProperty('message');
+    it('should return error for already registered email or username', async () => {
+      await request(app).post('/api/auth/register').send({
+        username: 'test',
+        email: 'test@example.com',
+        password: 'test123',
+        confirmPassword: 'test123',
+      });
+
+      const response = await request(app).post('/api/auth/register').send({
+        username: 'test',
+        email: 'test@example.com',
+        password: 'test123',
+        confirmPassword: 'test123',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        'error',
+        'Username or Email already registered'
+      );
+    });
   });
 
-  it('should be users can login', async () => {
-    await request(app).post('/api/auth/register').send({
-      username: 'testuser2',
-      email: 'testuser2@example.com',
-      password: 'password123',
+  describe('GET /api/auth/verify-email/:token', () => {
+    it('should verify email with valid token', async () => {
+      const user = await prisma.user.create({
+        data: {
+          username: 'verifyUser',
+          email: 'verify@example.com',
+          password: 'password',
+          emailVerificationToken: 'valid-token',
+          emailVerified: false,
+        },
+      });
+
+      const response = await request(app).get(
+        `/api/auth/verify-email/valid-token`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty(
+        'message',
+        'Email verified successfully'
+      );
+
+      const updatedUser = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+      expect(updatedUser.emailVerified).toBe(true);
     });
 
-    const user = await prisma.user.findUnique({
-      where: { email: 'testuser2@example.com' },
+    it('should return error for invalid or expired token', async () => {
+      const response = await request(app).get(
+        `/api/auth/verify-email/invalid-token`
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error', 'Invalid or expired token');
     });
-    await prisma.user.update({
-      where: { email: 'testuser2@example.com' },
-      data: { otp: null, isActive: true },
+  });
+
+  describe('POST /api/auth/login', () => {
+    it('should login a user with valid credentials', async () => {
+      const response = await request(app).post('/api/auth/login').send({
+        email: 'test@example.com',
+        password: 'test123',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token');
+
+      token = response.body.token;
     });
 
-    const res = await request(app).post('/api/auth/login').send({
-      email: 'testuser2@example.com',
-      password: 'password123',
+    it('should return error for invalid credentials', async () => {
+      const response = await request(app).post('/api/auth/login').send({
+        email: 'wrong@example.com',
+        password: 'wrongpassword',
+      });
+
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty(
+        'error',
+        'Invalid email or password'
+      );
+    });
+  });
+
+  describe('POST /api/auth/logout', () => {
+    it('should logout a user', async () => {
+      const response = await request(app)
+        .post('/api/auth/logout')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('message', 'Logout successful');
     });
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty('token');
-    token = res.body.token;
+    it('should return error for unauthorized access', async () => {
+      const response = await request(app).post('/api/auth/logout');
+
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('error', 'Unauthorized');
+    });
   });
 
-  it('should be user can logout', async () => {
-    const res = await request(app)
-      .post('/api/auth/logout')
-      .set('Authorization', `Bearer ${token}`);
+  describe('POST /api/auth/request-password-reset', () => {
+    it('should send password reset link to email', async () => {
+      const response = await request(app)
+        .post('/api/auth/request-password-reset')
+        .send({ email: 'test@example.com' });
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body.message).toBe('Logout successfull');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty(
+        'message',
+        'Password reset link sent to your email'
+      );
+    });
+
+    it('should return error if email does not exist', async () => {
+      const response = await request(app)
+        .post('/api/auth/request-password-reset')
+        .send({ email: 'nonexistent@example.com' });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty(
+        'error',
+        'User with this email does not exist'
+      );
+    });
   });
 
-  it('should can request password reset', async () => {
-    const res = await request(app)
-      .post('/api/auth/request-password-reset')
-      .send({ email: 'testuser@example.com' });
+  describe('POST /api/auth/verify-otp', () => {
+    it('should reset password with valid OTP', async () => {
+      const user = await prisma.user.create({
+        data: {
+          username: 'otpUser',
+          email: 'otp@example.com',
+          password: 'password',
+          passwordResetToken: 'valid-otp',
+        },
+      });
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body.message).toBe('Password reset link sent to your email');
-    expect(res.body).toHaveProperty('token');
-    token = res.body.token;
-  });
+      const response = await request(app).post('/api/auth/verify-otp').send({
+        email: 'otp@example.com',
+        otp: 'valid-otp',
+      });
 
-  it('should can reset password', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ token, newPassword: 'newpassword123' });
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty(
+        'message',
+        'New password sent to your email'
+      );
+    });
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body.message).toBe('Password reset successful');
-  });
+    it('should return error for invalid or expired token', async () => {
+      const response = await request(app).post('/api/auth/verify-otp').send({
+        email: 'otp@example.com',
+        otp: 'invalid-otp',
+      });
 
-  it('Should return status code 400 for token invalid', async () => {
-    const res = await request(app)
-      .post('/api/auth/reset-password')
-      .send({ token: 'tokeninvalid', newPassword: 'newpassword123' });
-
-    expect(res.statusCode).toEqual(400);
-    expect(res.body.error).toBe('Invalid or expired token');
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error', 'Invalid or expired token');
+    });
   });
 });

@@ -5,6 +5,7 @@ import {
   updateTaskController,
   deleteTaskController,
   completeTaskController,
+  getTaskByIdTask,
 } from '../controllers/taskController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import { validateBody } from '../middlewares/validationMiddleware.js';
@@ -24,6 +25,7 @@ router.post(
   createTaskController
 );
 router.get('/', authMiddleware, getTasksController);
+router.get('/:id', authMiddleware, getTaskByIdTask);
 router.put(
   '/:taskId',
   authMiddleware,

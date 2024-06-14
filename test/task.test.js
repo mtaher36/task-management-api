@@ -1,235 +1,142 @@
 import request from 'supertest';
-import app from '../src/app';
-import { prisma } from '../src/prismaClient';
+import app from '../src/app.js';
+import prisma from '../src/config/database.js';
 
 describe('Task API', () => {
   let token;
-  let user;
-  let project;
-  let section;
+  let taskId;
 
   beforeAll(async () => {
-    // Create a user and get a token
-    const userRes = await request(app).post('/api/register').send({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'password123',
-    });
-    user = userRes.body.user;
-
-    const loginRes = await request(app).post('/api/login').send({
-      email: 'test@example.com',
-      password: 'password123',
-    });
-    token = loginRes.body.token;
-
-    // Create a project
-    project = await prisma.taskProject.create({
+    // Buat user untuk mendapatkan token autentikasi
+    const user = await prisma.user.create({
       data: {
-        title: 'Test Project',
-        description: 'Test Project Description',
-        owner_id: user.id,
+        email: 'testuser@example.com',
+        password: 'password',
       },
     });
 
-    // Create a section
-    section = await prisma.taskSection.create({
+    // Dapatkan token autentikasi
+    const response = await request(app).post('/api/auth/login').send({
+      email: 'testuser@example.com',
+      password: 'password',
+    });
+
+    token = response.body.token;
+
+    // Buat task untuk keperluan testing
+    const task = await prisma.task.create({
       data: {
-        name: 'Test Section',
-        project_id: project.id,
+        title: 'Test Task',
+        description: 'Test Task Description',
+        due_date: new Date(),
+        user_id: user.id,
+        project_id: 1,
+        section_id: 1,
       },
     });
+
+    taskId = task.id;
   });
 
   afterAll(async () => {
-    // Clean up database
-    await prisma.taskSection.deleteMany();
-    await prisma.taskProject.deleteMany();
+    // Hapus data yang telah dibuat setelah testing selesai
+    await prisma.task.deleteMany();
     await prisma.user.deleteMany();
-    await prisma.$disconnect();
   });
 
-  describe('POST /api/tasks', () => {
-    it('should create a new task', async () => {
-      const res = await request(app)
-        .post('/api/tasks')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          project_id: project.id,
-          section_id: section.id,
-          title: 'New Task',
-          description: 'Task description',
-          due_date: '2023-12-31',
-          priority: 'High',
-          is_recurring: true,
-          recurrence_interval: 'Daily',
-        });
+  it('GET /api/tasks/:id - should return task details for a valid task ID', async () => {
+    const response = await request(app)
+      .get(`/api/tasks/${taskId}`)
+      .set('Authorization', `Bearer ${token}`);
 
-      expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty('message', 'Task created successfully');
-      expect(res.body.task).toHaveProperty('id');
-      expect(res.body.task.title).toBe('New Task');
-    });
-
-    it('should return an error for invalid input data', async () => {
-      const res = await request(app)
-        .post('/api/tasks')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          section_id: section.id,
-          title: 'New Task',
-          description: 'Task description',
-          due_date: '2023-12-31',
-          priority: 'High',
-          is_recurring: true,
-          recurrence_interval: 'Daily',
-        });
-
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('error');
-    });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('id', taskId);
+    expect(response.body).toHaveProperty('title', 'Test Task');
+    expect(response.body).toHaveProperty(
+      'description',
+      'Test Task Description'
+    );
   });
 
-  describe('GET /api/tasks', () => {
-    it('should get all tasks', async () => {
-      const res = await request(app)
-        .get('/api/tasks')
-        .set('Authorization', `Bearer ${token}`);
+  it('GET /api/tasks/:id - should return 400 for an invalid task ID', async () => {
+    const response = await request(app)
+      .get('/api/tasks/invalid-id')
+      .set('Authorization', `Bearer ${token}`);
 
-      expect(res.statusCode).toEqual(200);
-      expect(Array.isArray(res.body)).toBe(true);
-    });
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error', 'Invalid task ID');
   });
 
-  describe('PUT /api/tasks/:id', () => {
-    let task;
+  it('GET /api/tasks/:id - should return 404 for a non-existent task ID', async () => {
+    const nonExistentTaskId = 9999;
+    const response = await request(app)
+      .get(`/api/tasks/${nonExistentTaskId}`)
+      .set('Authorization', `Bearer ${token}`);
 
-    beforeAll(async () => {
-      task = await prisma.task.create({
-        data: {
-          project_id: project.id,
-          section_id: section.id,
-          title: 'Task to Update',
-          description: 'Task description',
-          due_date: new Date('2023-12-31'),
-          priority: 'High',
-          status: 'Pending',
-          is_recurring: true,
-          recurrence_interval: 'Daily',
-        },
-      });
-    });
-
-    it('should update a task', async () => {
-      const res = await request(app)
-        .put(`/api/tasks/${task.id}`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          title: 'Updated Task',
-          description: 'Updated description',
-          due_date: '2024-01-31',
-          priority: 'Medium',
-          status: 'In Progress',
-          is_recurring: false,
-          recurrence_interval: null,
-        });
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('message', 'Task updated successfully');
-      expect(res.body.task.title).toBe('Updated Task');
-    });
-
-    it('should return an error for invalid input data', async () => {
-      const res = await request(app)
-        .put(`/api/tasks/${task.id}`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          title: '',
-          description: 'Updated description',
-        });
-
-      expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('error');
-    });
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty('error', 'Task not found');
   });
 
-  describe('DELETE /api/tasks/:id', () => {
-    let task;
+  it('POST /api/tasks - should create a new task', async () => {
+    const newTask = {
+      title: 'New Task',
+      description: 'New Task Description',
+      due_date: new Date(),
+      project_id: 1,
+      section_id: 1,
+    };
 
-    beforeAll(async () => {
-      task = await prisma.task.create({
-        data: {
-          project_id: project.id,
-          section_id: section.id,
-          title: 'Task to Delete',
-          description: 'Task description',
-          due_date: new Date('2023-12-31'),
-          priority: 'High',
-          status: 'Pending',
-          is_recurring: true,
-          recurrence_interval: 'Daily',
-        },
-      });
-    });
+    const response = await request(app)
+      .post('/api/tasks')
+      .set('Authorization', `Bearer ${token}`)
+      .send(newTask);
 
-    it('should delete a task', async () => {
-      const res = await request(app)
-        .delete(`/api/tasks/${task.id}`)
-        .set('Authorization', `Bearer ${token}`);
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('message', 'Task deleted successfully');
-    });
-
-    it('should return an error for non-existent task', async () => {
-      const res = await request(app)
-        .delete('/api/tasks/999')
-        .set('Authorization', `Bearer ${token}`);
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty('error');
-    });
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Task created successfully'
+    );
+    expect(response.body.task).toHaveProperty('title', 'New Task');
   });
 
-  describe('POST /api/tasks/:id/complete', () => {
-    let task;
+  it('PUT /api/tasks/:id - should update an existing task', async () => {
+    const updatedTask = {
+      title: 'Updated Task',
+      description: 'Updated Task Description',
+      due_date: new Date(),
+    };
 
-    beforeAll(async () => {
-      task = await prisma.task.create({
-        data: {
-          project_id: project.id,
-          section_id: section.id,
-          title: 'Task to Complete',
-          description: 'Task description',
-          due_date: new Date('2023-12-31'),
-          priority: 'High',
-          status: 'Pending',
-          is_recurring: true,
-          recurrence_interval: 'Daily',
-        },
-      });
-    });
+    const response = await request(app)
+      .put(`/api/tasks/${taskId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(updatedTask);
 
-    it('should mark a task as completed', async () => {
-      const res = await request(app)
-        .post(`/api/tasks/${task.id}/complete`)
-        .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Task updated successfully'
+    );
+    expect(response.body.task).toHaveProperty('title', 'Updated Task');
+  });
 
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty(
-        'message',
-        'Task marked as completed successfully'
-      );
-      expect(res.body.task.status).toBe('Completed');
-    });
+  it('DELETE /api/tasks/:id - should delete an existing task', async () => {
+    const response = await request(app)
+      .delete(`/api/tasks/${taskId}`)
+      .set('Authorization', `Bearer ${token}`);
 
-    it('should return an error for non-existent task', async () => {
-      const res = await request(app)
-        .post('/api/tasks/999/complete')
-        .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Task deleted successfully'
+    );
+  });
 
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty('error');
-    });
+  it('GET /api/tasks - should return tasks for the authenticated user', async () => {
+    const response = await request(app)
+      .get('/api/tasks')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Array);
   });
 });

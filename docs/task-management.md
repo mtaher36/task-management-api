@@ -86,6 +86,39 @@
 }
 ```
 
+## Get Tasks By Id
+
+**Endpoint**: `GET /api/tasks/:id`
+
+**Request Headers**: `Authorization: Bearer unique-token`
+
+**Response Body Success:**:
+
+```json
+{
+  "id": 1,
+  "project_id": 1,
+  "section_id": 1,
+  "title": "New Task",
+  "description": "Task description",
+  "due_date": "2023-12-31",
+  "priority": "High",
+  "status": "Pending",
+  "is_recurring": true,
+  "recurrence_interval": "Daily",
+  "createdAt": "Current Time",
+  "updatedAt": "Curren Time"
+}
+```
+
+**Response Body Error:**:
+
+```json
+{
+  "error": "Task Not Found"
+}
+```
+
 ## Update Task
 
 **Endpoint**: `POST /api/tasks/:id`

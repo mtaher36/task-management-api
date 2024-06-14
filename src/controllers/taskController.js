@@ -48,6 +48,19 @@ export const getTasksController = async (req, res) => {
   }
 };
 
+export const getTaskByIdTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const intId = parseInt(id);
+
+    const task = await getTaskById(intId, req.user.id);
+
+    res.status(200).json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const updateTaskController = async (req, res) => {
   try {
     const taskId = parseInt(req.params.taskId);

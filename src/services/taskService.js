@@ -59,6 +59,10 @@ export const getTaskById = async (id, userId) => {
     include: { project: true },
   });
 
+  if (!task) {
+    throw new Error('Task not found');
+  }
+
   if (task.project.owner_id !== userId) {
     throw new Error('Forbidden: You do not own this project');
   }

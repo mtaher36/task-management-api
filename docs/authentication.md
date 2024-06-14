@@ -132,7 +132,7 @@
 
 ## Reset Password
 
-**Endpoint:** `POST /api/auth/verify-otp-reset-password`
+**Endpoint:** `POST /api/auth/verify-otp`
 
 **Request Body:**
 
