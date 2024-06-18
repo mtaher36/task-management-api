@@ -5,7 +5,7 @@ import { createNotification } from '../services/notificationService.js';
 
 // Jadwal untuk memeriksa tugas yang mendekati due date (1 hari ke depan)
 const dailyJob = new CronJob(
-  '* * * * *', // At midnight every day
+  '0 0 * * *', // At midnight every day
   async function () {
     console.log('Running daily cron job to check tasks due soon...');
     const now = new Date();
@@ -67,7 +67,7 @@ const minuteJob = new CronJob(
       },
     });
 
-    // console.log('Tasks found for now due:', tasks.length);
+    console.log('Tasks found for now due:', tasks.length);
 
     for (const task of tasks) {
       const message = `Your task "${task.title}" is now due!`;

@@ -14,7 +14,6 @@
 {
   "title": "New Subtask",
   "description": "Subtask description",
-  "due_date": "2023-12-31",
   "priority": "Medium"
 }
 ```
@@ -30,11 +29,8 @@
     "task_id": 1,
     "title": "Example Subtask",
     "description": "This is an example subtask.",
-    "due_date": "2024-06-17T00:00:00.000Z",
     "priority": "High",
     "status": "InProgress",
-    "is_recurring": false,
-    "recurrence_interval": null,
     "createdAt": "2024-06-10T13:28:23.856Z",
     "updatedAt": "2024-06-10T13:28:24.000Z"
   }
@@ -67,11 +63,8 @@
     "task_id": 1,
     "title": "Updated",
     "description": "This is an example subtask.",
-    "due_date": "2024-06-17T00:00:00.000Z",
     "priority": "High",
     "status": "InProgress",
-    "is_recurring": true,
-    "recurrence_interval": "Monthly",
     "createdAt": "2024-06-10T13:28:23.856Z",
     "updatedAt": "2024-06-10T14:34:00.000Z"
   }
@@ -100,7 +93,6 @@
 {
   "title": "Updated Subtask",
   "description": "Updated description",
-  "due_date": "2024-01-31",
   "priority": "High",
   "status": "In Progress"
 }
@@ -116,11 +108,8 @@
     "task_id": 1,
     "title": "Updated Subtask",
     "description": "Updated description",
-    "due_date": "2024-01-31",
     "priority": "High",
     "status": "InProgress",
-    "is_recurring": true,
-    "recurrence_interval": "Monthly",
     "createdAt": "2024-06-10T13:28:23.856Z",
     "updatedAt": "2024-06-10T14:34:00.000Z"
   }
@@ -177,11 +166,8 @@
     "task_id": 1,
     "title": "Example Subtask",
     "description": "This is an example subtask.",
-    "due_date": "2024-06-10T09:24:27.000Z",
     "priority": "High",
     "status": "Completed",
-    "is_recurring": true,
-    "recurrence_interval": "Monthly",
     "createdAt": "2024-06-10T09:24:27.287Z",
     "updatedAt": "2024-06-10T15:13:07.000Z"
   }

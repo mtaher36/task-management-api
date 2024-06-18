@@ -38,14 +38,11 @@ export const getTaskSectionByIdController = async (req, res) => {
     const { id } = req.params;
     const intId = parseInt(id);
 
-    console.log('Receiuved ID:', intId);
-
     if (isNaN(intId)) {
       return res.status(400).json({ error: 'Invalid section ID' });
     }
 
     const taskSection = await getTaskSectionById(intId);
-    console.log(taskSection);
 
     if (!taskSection) {
       return res.status(404).json({ error: 'Task section not found' });
@@ -77,7 +74,6 @@ export const getTaskSectionsController = async (req, res) => {
     const taskSections = await getTaskSectionsByProjectId(project_id);
     res.status(200).json(taskSections);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -121,7 +117,6 @@ export const deleteTaskSectionController = async (req, res) => {
     await deleteTaskSection(id);
     res.json({ message: 'Task section deleted successfully' });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: error.message });
   }
 };

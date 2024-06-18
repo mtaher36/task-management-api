@@ -15,7 +15,7 @@
     "username": "user123",
     "email": "user@example.com",
     "profile_image": null,
-    "role_id": 0,
+    "role_id": 1,
     "isActive": true,
     "createdAt": "2024-06-05T08:15:45.751Z",
     "updatedAt": "2024-06-06T06:31:19.000Z"
@@ -57,7 +57,7 @@
     "username": "newuser123",
     "email": "newuser@example.com",
     "profile_image": "new_image_url",
-    "role_id": 0
+    "role_id": 1
   }
 }
 ```
@@ -124,7 +124,7 @@
     "username": "newuser",
     "email": "newtest@test.com",
     "profile_image": "new_image_url",
-    "role_id": 0,
+    "role_id": 1,
     "isActive": true,
     "createdAt": "2024-06-05T08:15:45.751Z",
     "updatedAt": "2024-06-06T06:31:19.000Z"

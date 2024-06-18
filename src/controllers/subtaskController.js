@@ -10,22 +10,12 @@ export const createSubtaskController = async (req, res) => {
   const { taskId } = req.params;
 
   try {
-    const {
-      title,
-      description,
-      due_date,
-      priority,
-      is_recurring,
-      recurrence_interval,
-    } = req.body;
+    const { title, description, priority } = req.body;
     const subtask = await createSubtask(
       parseInt(taskId),
       title,
       description,
-      due_date,
-      priority,
-      is_recurring,
-      recurrence_interval
+      priority
     );
     res.status(201).json({
       message: 'Subtask created successfully',
@@ -50,25 +40,13 @@ export const updateSubtaskController = async (req, res) => {
   try {
     const { taskId } = req.params;
     const { id } = req.params;
-    const {
-      title,
-      description,
-      due_date,
-      priority,
-      status,
-      is_recurring,
-      recurrence_interval,
-    } = req.body;
+    const { title, description, priority } = req.body;
     const subtask = await updateSubtask(
       id,
       taskId,
       title,
       description,
-      due_date,
-      priority,
-      status,
-      is_recurring,
-      recurrence_interval
+      priority
     );
     res.status(200).json({
       message: 'Subtask updated successfully',

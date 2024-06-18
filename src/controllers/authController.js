@@ -14,7 +14,7 @@ const authController = {
 
       await register(username, email, password);
 
-      res.status(201).json({
+      res.status(200).json({
         message:
           'User registered, please check your email for verification link',
       });

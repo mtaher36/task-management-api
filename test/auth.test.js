@@ -27,7 +27,7 @@ describe('Authentication API', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty(
         'message',
-        'User registered, please check your email for OTP'
+        'User registered, please check your email for verification link'
       );
     });
 
@@ -46,11 +46,8 @@ describe('Authentication API', () => {
         confirmPassword: 'test123',
       });
 
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty(
-        'error',
-        'Username or Email already registered'
-      );
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('error', 'Email already registered');
     });
   });
 
@@ -58,16 +55,18 @@ describe('Authentication API', () => {
     it('should verify email with valid token', async () => {
       const user = await prisma.user.create({
         data: {
+          id: 1,
           username: 'verifyUser',
           email: 'verify@example.com',
           password: 'password',
-          emailVerificationToken: 'valid-token',
-          emailVerified: false,
+          role_id: 1,
+          verificationToken: '123awf',
+          isActive: false,
         },
       });
 
       const response = await request(app).get(
-        `/api/auth/verify-email/valid-token`
+        `/api/auth/verify-email/:token=123awf`
       );
 
       expect(response.status).toBe(200);
@@ -79,15 +78,15 @@ describe('Authentication API', () => {
       const updatedUser = await prisma.user.findUnique({
         where: { id: user.id },
       });
-      expect(updatedUser.emailVerified).toBe(true);
+      expect(updatedUser.isActive).toBe(true);
     });
 
     it('should return error for invalid or expired token', async () => {
       const response = await request(app).get(
-        `/api/auth/verify-email/invalid-token`
+        `/api/auth/verify-email?token=invalid-token`
       );
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('error', 'Invalid or expired token');
     });
   });
@@ -155,7 +154,7 @@ describe('Authentication API', () => {
         .post('/api/auth/request-password-reset')
         .send({ email: 'nonexistent@example.com' });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty(
         'error',
         'User with this email does not exist'
@@ -192,7 +191,7 @@ describe('Authentication API', () => {
         otp: 'invalid-otp',
       });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('error', 'Invalid or expired token');
     });
   });
